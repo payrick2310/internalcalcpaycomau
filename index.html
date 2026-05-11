@@ -1120,11 +1120,10 @@ function calcFlightRow(f, planFeeRate, prpBoosterRate, prpPerDollar, card) {
     spend = prpRequired / prpPerDollar;
   }
 
-  const fees         = spend != null ? spend * totalFeeRate     : null;
-  const totalCost    = fees  != null ? fees + f.taxes           : null;
-  const costAfterTax = totalCost != null ? totalCost * 0.75     : null;
-  const saving       = (totalCost != null && f.cash > totalCost) ? f.cash - costAfterTax : null;
-  const cpp          = f.ff > 0 ? f.cash / f.ff * 100 : 0;
+  const fees         = spend != null ? spend * totalFeeRate         : null;
+  const costAfterTax = fees  != null ? fees * 0.75                  : null;
+  const totalCost    = costAfterTax != null ? costAfterTax + f.taxes : null;
+  const saving       = (totalCost != null && f.cash > totalCost) ? f.cash - totalCost : null;
 
   return { prpRequired, spend, fees, totalCost, costAfterTax, saving, cpp };
 }
