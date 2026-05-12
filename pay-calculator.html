@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pay.com.au · Staff Rewards Calculator</title>
+  <style>
+    :root {
+      --brand:    #3866b0;
+      --brand-dk: #003c80;
+      --navy:     #001821;
+      --text:     #383f4d;
+      --muted:    #526973;
+      --light:    #8a9ba8;
+      --bg:       #f7faff;
+      --card:     #ffffff;
+      --border:   #d6cfc2;
+      --green:    #059669;
+      --green-bg: #ecfdf5;
+      --amber:    #d97706;
+      --amber-bg: #fffbeb;
+      --red:      #d03643;
+      --red-bg:   #fdf2f2;
+      --radius:   12px;
+      --shadow:   0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md:0 8px 32px rgba(0,0,0,0.10);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─────────────────────────────── */
+    header {
+      background: var(--navy);
+      height: 56px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 300;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .logo-wrap { display: flex; align-items: center; }
+    .logo-wrap svg { height: 26px; width: auto; }
+    /* Invert the dark text to white for nav */
+    .logo-wrap svg path[fill="#414141"] { fill: #ffffff !important; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .staff-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    /* ─── TABS ───────────────────────────────── */
+    .tab-bar {
+      background: var(--navy);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 0 28px;
+      display: flex;
+      gap: 0;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.1px;
+    }
+    .tab-btn.active {
+      color: #ffffff;
+      border-bottom-color: #6DB3D6;
+    }
+    .tab-btn:hover:not(.active) { color: rgba(255,255,255,0.75); }
+
+    /* ─── MAIN ───────────────────────────────── */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ─── LAYOUT GRID ────────────────────────── */
+    .col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* ─── CARDS ──────────────────────────────── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-head-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-head-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text);
+    }
+    .card-body { padding: 20px; }
+
+    /* ─── FORM ───────────────────────────────── */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .field input[type="number"],
+    .field select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field input[type="number"]:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(56,102,176,0.12);
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23526973' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    /* ─── RESULT ROWS ────────────────────────── */
+    .rrow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .rrow:last-child { border-bottom: none; }
+    .rlbl {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .rval {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: right;
+      min-width: 90px;
+      white-space: nowrap;
+    }
+    .rval.primary { font-size: 18px; color: var(--brand); }
+    .rval.cost    { color: var(--red); }
+    .rval.saving  { color: var(--green); }
+
+    .rrow.subtotal { background: #f8f9fb; margin: 0 -20px; padding: 9px 20px; }
+    .rrow.subtotal .rlbl { font-weight: 600; color: var(--text); }
+
+    .rule { border: none; border-top: 1px dashed var(--border); margin: 4px 0; }
+
+    /* ─── SECTION DIVIDER ────────────────────── */
+    .section-hd {
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-hd-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .section-hd-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* ─── BEST FLIGHT CARD ───────────────────── */
+    .flight-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--brand);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .flight-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .flight-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .fstat {
+      padding: 12px 14px;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .fstat-lbl { font-size: 10px; font-weight: 600; color: var(--light); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+    .fstat-val { font-size: 15px; font-weight: 700; color: var(--text); }
+    .fstat-val.blue { color: var(--brand); }
+    .fstat-val.green { color: var(--green); }
+    .afford-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .afford-yes { background: var(--green-bg); color: var(--green); border: 1px solid #a7f3d0; }
+    .afford-no  { background: var(--red-bg);   color: var(--red);   border: 1px solid #fecaca; }
+    .afford-na  { background: var(--bg);        color: var(--muted); border: 1px solid var(--border); }
+
+    /* ─── HINT BOX ───────────────────────────── */
+    .hint {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 20px;
+      line-height: 1.7;
+    }
+
+    /* ─── ¢/PT BADGES ────────────────────────── */
+    .cpp {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .cpp-great { background: #d1fae5; color: #065f46; }
+    .cpp-good  { background: #fef3c7; color: #92400e; }
+    .cpp-low   { background: #fee2e2; color: #991b1b; }
+    .cpp-na    { background: #f3f4f6; color: var(--light); }
+
+    /* ─── LIVE FLIGHTS ───────────────────────── */
+    .data-source-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .ds-status { font-size: 12px; flex: 1; }
+    .ds-status .ds-ok   { color: var(--green); font-weight: 500; }
+    .ds-status .ds-warn { color: var(--amber); }
+    .ds-status .ds-err  { color: #dc2626; }
+    .ds-status .ds-muted { color: var(--light); }
+    .ds-actions { display: flex; gap: 8px; }
+    .ds-btn {
+      font-size: 12px;
+      font-family: inherit;
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 500;
+      transition: background .15s;
+    }
+    .ds-btn:hover { background: #f0f4fb; }
+    .ds-btn-primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+    .ds-btn-primary:hover { background: var(--brand-dk); }
+    .filter-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    .filter-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .filter-field { flex: 1; min-width: 140px; }
+    .filter-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .filter-field select {
+      width: 100%;
+      padding: 10px 32px 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23526973' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+      appearance: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .filter-field select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(56,102,176,0.12);
+    }
+
+    .summary-strip {
+      background: var(--navy);
+      border-radius: var(--radius);
+      padding: 14px 22px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .ss-stat { display: flex; flex-direction: column; }
+    .ss-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; }
+    .ss-val { font-size: 20px; font-weight: 800; color: #ffffff; margin-top: 1px; }
+    .ss-legend { margin-left: auto; font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.8; text-align: right; }
+
+    /* ─── TABLE ──────────────────────────────── */
+    .tbl-outer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    /* Column widths — 16 cols, tuned to fill ~1280px */
+    col.c-id   { width: 2.2%; }
+    col.c-sm   { width: 5.5%; }
+    col.c-md   { width: 6.2%; }
+    col.c-to   { width: 7.8%; }
+    col.c-dep  { width: 5.0%; }
+    col.c-num  { width: 6.0%; }
+    col.c-earn { width: 7.2%; }
+    col.c-cpp  { width: 5.5%; }
+    thead th {
+      background: #f8f9fb;
+      padding: 8px 8px;
+      text-align: left;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+    }
+    thead th.num { text-align: right; }
+    td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+    td.num { text-align: right; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Row coloring by ¢/pt */
+    tr.row-great td { background-color: #f0fdf4; }
+    tr.row-good  td { background-color: #fffbeb; }
+    tr.row-low   td { background-color: #fef2f2; }
+
+    /* Matching route highlight */
+    tr.row-match td:first-child {
+      box-shadow: inset 3px 0 0 var(--brand);
+      padding-left: 11px;
+    }
+    tr.row-great.row-match td:first-child { box-shadow: inset 3px 0 0 var(--green); }
+    tr.row-good.row-match  td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
+    tr.row-low.row-match   td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+
+    tr:hover td { filter: brightness(0.97); }
+
+    .sv-pos  { color: var(--green); font-weight: 700; }
+    .sv-dash { color: #d1d5db; }
+
+    /* ─── CAP ALERT ─────────────────────────── */
+    .cap-alert-box {
+      background: var(--amber-bg);
+      border: 1px solid #f59e0b;
+      border-left: 4px solid var(--amber);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .cap-alert-box .cap-title { font-weight: 700; color: var(--amber); margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ─── CARD INFO PANEL ────────────────────── */
+    .card-info-panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
+    .ci-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--border); gap:16px; }
+    .ci-name { font-size:15px; font-weight:700; color:var(--text); }
+    .ci-meta { font-size:12px; color:var(--muted); margin-top:3px; }
+    .ci-link { font-size:12px; font-weight:600; color:var(--brand); text-decoration:none; white-space:nowrap; flex-shrink:0; }
+    .ci-link:hover { text-decoration:underline; }
+    .ci-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
+    .ci-stat { background:var(--bg); border-radius:6px; padding:10px 12px; border:1px solid var(--border); }
+    .ci-stat-lbl { font-size:10px; font-weight:600; color:var(--light); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px; }
+    .ci-stat-val { font-size:13px; font-weight:700; color:var(--text); }
+    .ci-partners-title { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px; }
+    .ci-partner-tag { display:inline-block; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:2px 8px; margin:2px; font-size:11px; }
+    .ci-direct-badge { display:inline-block; background:var(--green-bg); border:1px solid #a7f3d0; color:var(--green); border-radius:4px; padding:3px 10px; font-size:11px; font-weight:600; }
+
+    /* ─── CARDS REFERENCE ────────────────────── */
+    .card-link { color:var(--brand); text-decoration:none; font-weight:500; font-size:11.5px; }
+    .card-link:hover { text-decoration:underline; }
+    .type-badge { display:inline-block; padding:1px 7px; border-radius:3px; font-size:10px; font-weight:700; letter-spacing:0.3px; }
+    .type-amex { background:#dbeafe; color:#1e40af; }
+    .type-visa { background:#ede9fe; color:#5b21b6; }
+    .type-mc   { background:#fce7f3; color:#9d174d; }
+
+    /* ─── RESPONSIVE ─────────────────────────── */
+    @media (max-width: 1024px) {
+      .col-2 { grid-template-columns: 1fr; }
+      .flight-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      main { padding: 16px; }
+      header, .tab-bar { padding-left: 16px; padding-right: 16px; }
+      .filter-row { flex-direction: column; }
+      .filter-field { min-width: 100%; }
+      .summary-strip { flex-wrap: wrap; gap: 16px; }
+      .ss-legend { display: none; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ HEADER -->
+<header>
+  <div class="logo-wrap">
+    <!-- pay.com.au official SVG logo — text paths inverted to white -->
+    <svg width="205" height="40" viewBox="0 0 205 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M179.785 10.6292C184.733 10.6292 186.91 13.1436 186.91 17.3865V26.4824H182.529V24.7869C181.423 25.985 179.905 26.7737 177.698 26.7737C174.688 26.7737 172.215 25.0782 172.215 21.9784V21.918C172.215 18.4967 174.867 16.9166 178.656 16.9166C179.992 16.9031 181.319 17.1217 182.577 17.5624V17.2876C182.577 15.4437 181.415 14.4214 179.149 14.4214H174.598V10.5742L179.785 10.6292ZM182.616 20.1648C181.707 19.7708 180.723 19.5712 179.729 19.5794C177.788 19.5794 176.595 20.3379 176.595 21.7421V21.8026C176.595 23.0007 177.609 23.7014 179.071 23.7014C181.185 23.7014 182.616 22.561 182.616 20.9534V20.1648Z" fill="white"/>
+      <path d="M56.3333 26.7741C53.9192 26.7741 52.4293 25.6914 51.3567 24.4328V31.1599H46.8281V10.8054H51.3455V13.0561C52.4489 11.5941 53.9668 10.5142 56.3221 10.5142C60.0497 10.5142 63.6037 13.3776 63.6037 18.6153V18.673C63.6093 23.9079 60.1198 26.7741 56.3333 26.7741ZM59.0779 18.6153C59.0779 16.0129 57.2912 14.2872 55.1571 14.2872C53.023 14.2872 51.2839 16.0129 51.2839 18.6153V18.673C51.2839 21.2754 53.0426 23.0011 55.1571 23.0011C57.2715 23.0011 59.0779 21.3056 59.0779 18.673V18.6153Z" fill="white"/>
+      <path d="M72.6716 10.6292C77.6202 10.6292 79.7963 13.1436 79.7963 17.3865V26.4824H75.4162V24.7869C74.3099 25.985 72.792 26.7737 70.5851 26.7737C67.5745 26.7737 65.1016 25.0782 65.1016 21.9784V21.918C65.1016 18.4967 67.7537 16.9166 71.5429 16.9166C72.8785 16.9031 74.2059 17.1217 75.4638 17.5624V17.2876C75.4638 15.4437 74.3015 14.4214 72.0358 14.4214H67.4849V10.5742L72.6716 10.6292ZM75.503 20.1648C74.5938 19.7708 73.6095 19.5712 72.6156 19.5794C70.6748 19.5794 69.4817 20.3379 69.4817 21.7421V21.8026C69.4817 23.0007 70.4955 23.7014 71.9574 23.7014C74.0719 23.7014 75.503 22.561 75.503 20.9534V20.1648Z" fill="white"/>
+      <path d="M86.0296 31.2503H81.4618L82.0471 27.5542H85.461C86.2368 27.5542 86.6569 27.3234 87.0434 26.532L80.7812 10.7969H85.5815L89.2222 21.4729L92.7118 10.7969H97.4224L91.2807 26.8535C90.0596 30.0412 88.7461 31.2503 86.0352 31.2503" fill="white"/>
+      <path d="M98.9272 26.6942C98.5233 26.6899 98.1297 26.5684 97.796 26.345C97.4623 26.1217 97.2033 25.8065 97.0518 25.4391C96.9003 25.0716 96.8629 24.6684 96.9445 24.2802C97.026 23.892 97.2227 23.5362 97.5099 23.2574C97.797 22.9787 98.1618 22.7895 98.5583 22.7138C98.9549 22.638 99.3653 22.6791 99.7381 22.8317C100.111 22.9844 100.429 23.2419 100.653 23.5717C100.877 23.9016 100.997 24.2891 100.997 24.6854C100.992 25.2204 100.771 25.7318 100.384 26.108C99.9959 26.4843 99.4724 26.695 98.9272 26.6942Z" fill="#6DB3D6"/>
+      <path d="M167.991 26.6942C167.587 26.6893 167.194 26.5674 166.86 26.3437C166.527 26.12 166.269 25.8046 166.117 25.4372C165.966 25.0697 165.929 24.6666 166.011 24.2786C166.093 23.8905 166.29 23.5349 166.577 23.2565C166.865 22.978 167.229 22.7891 167.626 22.7136C168.022 22.6381 168.433 22.6793 168.805 22.832C169.178 22.9847 169.496 23.2422 169.72 23.572C169.944 23.9018 170.063 24.2892 170.063 24.6854C170.058 25.2209 169.837 25.7326 169.449 26.109C169.061 26.4853 168.537 26.6957 167.991 26.6942Z" fill="#6DB3D6"/>
+      <path d="M111.247 26.8318C106.447 26.8318 102.93 23.2072 102.93 18.7307V18.673C102.93 14.1965 106.419 10.5142 111.309 10.5142C114.317 10.5142 116.196 11.5062 117.686 13.144L114.925 16.0706C113.911 15.0154 112.897 14.3449 111.284 14.3449C109.018 14.3449 107.408 16.3042 107.408 18.6153V18.673C107.408 21.072 108.99 23.0011 111.463 23.0011C112.984 23.0011 114.026 22.3581 115.129 21.3331L117.781 23.9684C116.224 25.6337 114.44 26.8318 111.247 26.8318Z" fill="white"/>
+      <path d="M127.22 26.8318C122.274 26.8318 118.605 23.2347 118.605 18.7307V18.673C118.605 14.169 122.299 10.5142 127.287 10.5142C132.275 10.5142 135.905 14.1113 135.905 18.6153V18.673C135.896 23.177 132.2 26.8318 127.22 26.8318ZM131.421 18.673C131.421 16.3619 129.721 14.3449 127.22 14.3449C124.627 14.3449 123.075 16.3042 123.075 18.6153V18.673C123.075 20.9841 124.775 23.0011 127.276 23.0011C129.869 23.0011 131.421 21.0418 131.421 18.7307V18.673Z" fill="white"/>
+      <path d="M158.14 26.4828V17.7359C158.14 15.631 157.185 14.5482 155.488 14.5482C153.79 14.5482 152.743 15.631 152.743 17.7359V26.4828H148.214V17.7359C148.214 15.631 147.259 14.5482 145.559 14.5482C143.859 14.5482 142.818 15.631 142.818 17.7359V26.4828H138.289V10.8054H142.818V13.0286C143.862 11.7123 145.235 10.5142 147.528 10.5142C149.615 10.5142 151.194 11.4183 152.029 12.9874C153.429 11.3798 155.109 10.5142 157.277 10.5142C160.638 10.5142 162.668 12.501 162.668 16.285V26.4938L158.14 26.4828Z" fill="white"/>
+      <path d="M200.076 26.4826V24.2594C199.031 25.5757 197.69 26.7739 195.396 26.7739C191.968 26.7739 189.969 24.5507 189.969 20.9536V10.8052H194.503V19.5493C194.503 21.6543 195.514 22.737 197.245 22.737C198.975 22.737 200.076 21.6543 200.076 19.5493V10.8052H204.605V26.4826H200.076Z" fill="white"/>
+      <path d="M40.7599 32.8552C40.7599 34.7501 39.9927 36.5674 38.6271 37.9073C37.2616 39.2472 35.4095 40 33.4783 40H7.28155C5.35036 40 3.49827 39.2472 2.13272 37.9073C0.76716 36.5674 0 34.7501 0 32.8552V7.14482C0 5.2499 0.76716 3.43258 2.13272 2.09267C3.49827 0.752754 5.35036 0 7.28155 0H33.4839C35.4151 0 37.2672 0.752754 38.6327 2.09267C39.9983 3.43258 40.7655 5.2499 40.7655 7.14482L40.7599 32.8552Z" fill="#3866AF"/>
+      <path d="M13.9815 19.8241C14.2208 19.3382 14.5856 18.9222 15.0396 18.6175C15.4936 18.3128 16.0209 18.13 16.5692 18.0874H22.6017C22.9894 18.0992 23.3755 18.0345 23.7372 17.8971C24.0989 17.7597 24.4288 17.5524 24.7073 17.2875C24.9858 17.0226 25.2072 16.7055 25.3584 16.355C25.5097 16.0046 25.5876 15.6279 25.5876 15.2473C25.5876 14.8667 25.5097 14.49 25.3584 14.1395C25.2072 13.7891 24.9858 13.472 24.7073 13.2071C24.4288 12.9422 24.0989 12.7349 23.7372 12.5975C23.3755 12.4601 22.9894 12.3954 22.6017 12.4072H19.3894V6.28467H22.2656C25.5872 6.28467 29.1663 6.47428 31.3004 8.85405C33.6865 11.5224 33.8461 16.0758 31.4796 19.6372C28.8106 23.6713 24.3017 25.2652 19.9832 25.3531H17.527L12.3487 25.4383C12.3487 25.4383 10.884 25.3861 11.6766 23.9654L13.9815 19.8241Z" fill="white"/>
+      <path d="M19.4629 6.28467H12.6994C12.5762 6.29038 12.4561 6.32506 12.3494 6.3858C12.2427 6.44653 12.1524 6.53154 12.0861 6.63367C11.9041 7.07335 12.2345 7.51303 12.6854 8.32094C13.5536 9.89005 13.7273 10.2445 14.461 11.3932C15.0211 12.1022 15.6737 12.3797 16.8387 12.4347H19.981V6.28467H19.4629Z" fill="white"/>
+      <path d="M17.7414 26.3426C17.3409 28.5795 16.9377 30.8686 16.5344 33.1082C16.4989 33.2749 16.4078 33.4252 16.2753 33.5352C16.1429 33.6452 15.9768 33.7087 15.8034 33.7155H9.28643C8.211 33.7155 7.90853 33.6138 7.71529 33.4407C7.52205 33.2676 7.56686 32.9736 7.7489 32.5339C7.7489 32.5339 9.08478 29.2555 9.84375 27.8183C10.6027 26.3811 12.0674 26.2959 12.9972 26.2959C13.927 26.2959 17.6826 26.3399 17.6826 26.3399L17.7414 26.3426Z" fill="#6DB3D6"/>
+    </svg>
+  </div>
+  <div class="header-right">
+    <span class="staff-badge">Staff Tool — Internal Use Only</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════ TABS -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('calc', this)">Calculator</button>
+  <button class="tab-btn" onclick="switchTab('flights', this)">Live Flights</button>
+  <button class="tab-btn" onclick="switchTab('cards-ref', this)">Cards Reference</button>
+</div>
+
+<main>
+
+  <!-- ════════════════════════════════════ CALCULATOR TAB -->
+  <div id="calc" class="tab-panel active">
+
+    <div class="col-2">
+
+      <!-- Inputs -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-num">1</div>
+          <div class="card-head-title">Enter Details</div>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>Amount Type</label>
+            <select id="txnType" onchange="calculate()">
+              <option value="single">Single Transaction</option>
+              <option value="monthly">Monthly Total</option>
+              <option value="annual">Annual Total</option>
+            </select>
+          </div>
+          <div class="field">
+            <label id="payAmountLabel">Pay Amount (AUD)</label>
+            <input type="number" id="payAmount" value="2000000" min="0" step="1000" oninput="calculate()">
+            <div id="tierBadge" style="display:none;margin-top:6px;font-size:11px;font-weight:600;color:var(--brand);padding:4px 10px;background:#eef3fb;border:1px solid #c7d8f0;border-radius:4px;display:inline-block;"></div>
+          </div>
+          <div class="field">
+            <label>Payment Method</label>
+            <select id="payMethod" onchange="onCardChange()"></select>
+          </div>
+          <div class="field">
+            <label>PRP Option</label>
+            <select id="prpOption" onchange="calculate()">
+              <option>0 PRP per $</option>
+              <option>1 PRP per $ (+1% fee)</option>
+              <option selected>2 PRP per $ (+1.8% fee)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Target Airline / FF Program</label>
+            <select id="transferPartner" onchange="calculate()"></select>
+          </div>
+          <div class="field">
+            <label>Plan</label>
+            <select id="plan" onchange="calculate()">
+              <option selected>Premium</option>
+              <option>Regular</option>
+              <option>Free</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-num">2</div>
+          <div class="card-head-title">Results</div>
+        </div>
+        <div class="card-body">
+          <div class="rrow">
+            <div class="rlbl" id="lbl-planFee">Plan Fee Rate</div>
+            <div class="rval" id="r-planFee">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">PRP Booster Rate</div>
+            <div class="rval" id="r-prpBooster">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">Total Fee Rate</div>
+            <div class="rval" id="r-totalRate">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Total Fee — Pre-Tax</div>
+            <div class="rval cost" id="r-feePre">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Total Fee — After 25% Tax Deduction</div>
+            <div class="rval saving" id="r-feePost">—</div>
+          </div>
+          <hr class="rule">
+          <div class="rrow">
+            <div class="rlbl">PRP Earned</div>
+            <div class="rval" id="r-prpEarned">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Card Points Earned</div>
+            <div class="rval" id="r-cardPts">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">FF Points via PRP</div>
+            <div class="rval" id="r-ffPRP">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">FF Points via Card</div>
+            <div class="rval" id="r-ffCard">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">Total FF Points Earned</div>
+            <div class="rval primary" id="r-totalFF">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">Estimated Value in Flights <span style="font-weight:400;font-size:10px;color:var(--light);">(@ 3.5¢/pt)</span></div>
+            <div class="rval saving" id="r-flightValue">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">Net Value Created <span style="font-weight:400;font-size:10px;color:var(--light);">(Flights Value less After‑Tax Fee)</span></div>
+            <div class="rval" id="r-netValue">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cap Alert -->
+    <div id="cap-alert" style="display:none;margin-top:16px;"></div>
+    <!-- Card Info Panel -->
+    <div id="card-panel" style="display:none;margin-top:16px;"></div>
+
+    <!-- Best Affordable Flight -->
+    <div class="flight-card">
+      <div class="flight-card-title">
+        <span>Best Flight with Their Earned Points</span>
+        <span id="ex-status"></span>
+      </div>
+      <div class="flight-stats">
+        <div class="fstat">
+          <div class="fstat-lbl">Route</div>
+          <div class="fstat-val" id="ex-route">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Airline / Class</div>
+          <div class="fstat-val" id="ex-airline">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Departs</div>
+          <div class="fstat-val" id="ex-dep">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Points Required</div>
+          <div class="fstat-val blue" id="ex-pts">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Cash Price</div>
+          <div class="fstat-val" id="ex-cash">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Fees After Tax</div>
+          <div class="fstat-val" id="ex-taxes">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Your Total Points</div>
+          <div class="fstat-val blue" id="ex-yourPts">—</div>
+        </div>
+        <div class="fstat">
+          <div class="fstat-lbl">Est. Saving (After Tax)</div>
+          <div class="fstat-val green" id="ex-saving">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flight Savings Calculator -->
+    <div class="section-hd">
+      <div class="section-hd-title">Flight Savings Calculator</div>
+      <div class="section-hd-line"></div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+      Enter a specific flight's FF points and cash price to see your exact pre-tax and after-tax savings using the plan and payment method selected above.
+    </p>
+
+    <div class="col-2">
+      <!-- Flight Inputs -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-num">1</div>
+          <div class="card-head-title">Flight Details</div>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>Airline (PRP Transfer Rate)</label>
+            <select id="fsAirline" onchange="calculate()">
+              <option>Air Canada</option>
+              <option>British Airways</option>
+              <option>Cathay</option>
+              <option>China Southern</option>
+              <option>Japan Airlines</option>
+              <option>Qatar</option>
+              <option>Qantas</option>
+              <option selected>Singapore</option>
+              <option>Thai Airways</option>
+              <option>United</option>
+              <option>Vietnam</option>
+              <option>Virgin</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>FF Points Required</label>
+            <input type="number" id="fsPoints" value="284000" min="0" step="1000" oninput="calculate()">
+          </div>
+          <div class="field">
+            <label>Cash Price of Flight (AUD)</label>
+            <input type="number" id="fsCash" value="12000" min="0" step="100" oninput="calculate()">
+          </div>
+          <div class="field">
+            <label>Taxes on Points Seat (AUD)</label>
+            <input type="number" id="fsTaxes" value="500" min="0" step="10" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Flight Results -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-head-num">2</div>
+          <div class="card-head-title">Savings Breakdown</div>
+        </div>
+        <div class="card-body">
+          <div class="rrow">
+            <div class="rlbl">PRP Required</div>
+            <div class="rval" id="fs-prpReq">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Spend to Earn PRP</div>
+            <div class="rval" id="fs-spend">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Total Fee Rate (incl. PRP)</div>
+            <div class="rval" id="fs-rate">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Fees to Pay — Pre-Tax</div>
+            <div class="rval cost" id="fs-feesPre">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Fees to Pay — After 25% Tax</div>
+            <div class="rval saving" id="fs-feesPost">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Taxes on Points Seat</div>
+            <div class="rval" id="fs-taxes">—</div>
+          </div>
+          <hr class="rule">
+          <div class="rrow">
+            <div class="rlbl">Total Cost — Pre-Tax</div>
+            <div class="rval" id="fs-totalPre">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Total Cost — After Tax</div>
+            <div class="rval" id="fs-totalPost">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Cash Saving — Pre-Tax</div>
+            <div class="rval" id="fs-savePre">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">Cash Saving — After Tax</div>
+            <div class="rval saving" id="fs-savePost">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">% Saving — Pre-Tax</div>
+            <div class="rval" id="fs-pctPre">—</div>
+          </div>
+          <div class="rrow subtotal">
+            <div class="rlbl">% Saving — After Tax</div>
+            <div class="rval saving" id="fs-pctPost">—</div>
+          </div>
+          <div class="rrow">
+            <div class="rlbl">Value Per Point (cash price ÷ FF points)</div>
+            <div class="rval" id="fs-cpp">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">
+      <strong>Note:</strong> Bank Account = 0% Plan Fee (PRP Booster only). The airline selected in Flight Details sets the PRP transfer rate independently of the Transfer Partner above. Tax saving assumes 25% rate (Fee x 0.75). Rates are editable in the Data sheet of the source workbook.
+    </div>
+
+  </div><!-- /calc tab -->
+
+
+  <!-- ════════════════════════════════════ LIVE FLIGHTS TAB -->
+  <div id="flights" class="tab-panel">
+
+    <div class="data-source-bar">
+      <span id="ds-status" class="ds-status"><span class="ds-warn">Loading flight data from repository…</span></span>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-field">
+          <label>From</label>
+          <select id="lf-from" onchange="fromChanged()">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>To</label>
+          <select id="lf-to" onchange="renderFlights()">
+            <option value="">All Destinations</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>Plan</label>
+          <select id="lf-plan" onchange="renderFlights()">
+            <option>Premium</option>
+            <option>Regular</option>
+            <option>Free</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>Card</label>
+          <select id="lf-card" onchange="renderFlights()"></select>
+        </div>
+        <div class="filter-field">
+          <label>PRP Option</label>
+          <select id="lf-prp" onchange="renderFlights()">
+            <option>0 PRP per $</option>
+            <option>1 PRP per $ (+1% fee)</option>
+            <option selected>2 PRP per $ (+1.8% fee)</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>Value Rating</label>
+          <select id="lf-rating" onchange="renderFlights()">
+            <option value="">All Ratings</option>
+            <option value="row-great">Excellent (&gt;3.5¢)</option>
+            <option value="row-good">Good (2.5–3.5¢)</option>
+            <option value="row-low">Marginal (&lt;2.5¢)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-strip">
+      <div class="ss-stat">
+        <div class="ss-lbl">Matching Flights</div>
+        <div class="ss-val" id="lf-count">—</div>
+      </div>
+      <div class="ss-stat">
+        <div class="ss-lbl">Avg Cash Saving</div>
+        <div class="ss-val" id="lf-avgSave">—</div>
+      </div>
+      <div class="ss-stat">
+        <div class="ss-lbl">Best Value / pt</div>
+        <div class="ss-val" id="lf-bestCPP">—</div>
+      </div>
+      <div class="ss-legend">
+        Left border = matches selected route<br>
+        Value/pt: &gt;3.5c Excellent &nbsp;&middot;&nbsp; 2.5–3.5c Good &nbsp;&middot;&nbsp; &lt;2.5c Marginal
+      </div>
+    </div>
+
+    <div class="tbl-outer">
+      <table>
+        <colgroup>
+          <col class="c-id">
+          <col class="c-sm">
+          <col class="c-to">
+          <col class="c-sm">
+          <col class="c-sm">
+          <col class="c-dep">
+          <col class="c-num">
+          <col class="c-num">
+          <col class="c-num">
+          <col class="c-num">
+          <col class="c-earn">
+          <col class="c-num">
+          <col class="c-md">
+          <col class="c-md">
+          <col class="c-md">
+          <col class="c-cpp">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Airline</th>
+            <th>Class</th>
+            <th>Departs</th>
+            <th class="num">FF Pts</th>
+            <th class="num">Taxes</th>
+            <th class="num">Cash Price</th>
+            <th class="num">PRP Req.</th>
+            <th class="num">Spend to Earn</th>
+            <th class="num">Fees</th>
+            <th class="num">Total Cost</th>
+            <th class="num">-25% Tax</th>
+            <th class="num">Cash Saving</th>
+            <th class="num">¢/pt</th>
+          </tr>
+        </thead>
+        <tbody id="flights-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="hint" style="margin-top:14px;">
+      <strong>Note:</strong> Calculations update dynamically based on Card and Plan selection. AMEX Qantas Business Rewards = 1.25 pts per $1. Cash prices are indicative at time of recording. Tax deduction assumes 25% rate. A dash (—) in Cash Saving means fees exceed the cash price at current settings; try switching to a different plan or card.
+    </div>
+
+  </div><!-- /flights tab -->
+
+  <!-- ════════════════════════════════════ CARDS REFERENCE TAB -->
+  <div id="cards-ref" class="tab-panel">
+    <div class="filter-card">
+      <input type="text" id="cr-search" placeholder="Search cards, banks, programs…"
+        style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;color:var(--text);outline:none;box-sizing:border-box;"
+        oninput="renderCardsTable()">
+    </div>
+    <div class="tbl-outer" style="margin-top:0;">
+      <table style="table-layout:auto;min-width:1200px;">
+        <colgroup>
+          <col style="width:36px"><col style="width:220px"><col style="width:110px">
+          <col style="width:80px"><col style="width:145px"><col style="width:80px">
+          <col style="width:80px"><col style="width:80px"><col style="width:90px">
+          <col style="width:90px"><col style="width:90px"><col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th><th>Card</th><th>Bank</th><th>Type</th><th>Program</th>
+            <th class="num">Annual Fee</th><th class="num">Base Earn</th>
+            <th class="num">Govt Earn</th><th class="num">Monthly Cap</th>
+            <th class="num">Annual Cap</th><th class="num">Post-Cap Earn</th>
+            <th>Transfer Partners</th>
+          </tr>
+        </thead>
+        <tbody id="cards-tbody"></tbody>
+      </table>
+    </div>
+    <div class="hint" style="margin-top:14px;">
+      <strong>Note:</strong> Transfer rates shown as Card Points : FF Points (e.g. 3:1 = 3 card points → 1 FF point). Earn rates are points per $1 spent. Caps are point limits per period. Data current as of May 2026.
+    </div>
+  </div><!-- /cards-ref tab -->
+
+</main>
+
+<script>
+
+// ════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════
+
+const PRP_RATES = {
+  'Air Canada': 2.5, 'British Airways': 3, 'Cathay': 3, 'China Southern': 3,
+  'Japan Airlines': 3, 'Qatar': 3, 'Qantas': 2, 'Singapore': 2.5,
+  'Thai Airways': 3, 'United': 3, 'Vietnam': 2.5, 'Virgin': 2
+};
+
+const AMEX_RATES = {
+  'British Airways': 3, 'Cathay': 3, 'Etihad': 3, 'Malaysia Airlines': 3,
+  'Qatar': 3, 'Qantas': 2, 'Singapore': 3, 'Virgin': 2, 'Virgin Atlantic': 3
+};
+
+// Flat rates for Bank Account and for monthly/annual AMEX totals
+const PLAN_RATES      = { 'Premium': 0.019,  'Regular': 0.0205, 'Free': 0.021  };
+const PLAN_RATES_VISA = { 'Premium': 0.010,  'Regular': 0.011,  'Free': 0.012  };
+const PLAN_RATES_MC   = { 'Premium': 0.008,  'Regular': 0.009,  'Free': 0.010  };
+
+// Maps full FF program name → PRP_RATES key
+const AIRLINE_TO_PRP = {
+  'Qantas Frequent Flyer':  'Qantas',
+  'Velocity Frequent Flyer':'Virgin',
+  'Singapore KrisFlyer':    'Singapore',
+  'Cathay Asia Miles':      'Cathay',
+  'British Airways Avios':  'British Airways',
+  'Qatar Privilege Club':   'Qatar',
+  'Virgin Atlantic':        'Virgin',
+  'Air Canada Aeroplan':    'Air Canada',
+  'United MileagePlus':     'United',
+  'Thai Royal Orchid Plus': 'Thai Airways',
+  'Asia Miles':             'Cathay',
+};
+
+// Maps FLIGHTS airline shortname → FF program name used in card partners
+const FLIGHT_AIRLINE_TO_FF = {
+  'Singapore':    'Singapore KrisFlyer',
+  'Qatar':        'Qatar Privilege Club',
+  'Qantas':       'Qantas Frequent Flyer',
+  'Cathay':       'Cathay Asia Miles',
+  'Virgin':       'Velocity Frequent Flyer',
+  'British Airways': 'British Airways Avios',
+  'United':       'United MileagePlus',
+  'Thai Airways': 'Thai Royal Orchid Plus',
+  'Vietnam':      null,
+  'China Southern': null,
+};
+
+// Tiered AMEX rates for single transactions only
+const AMEX_TIERED_RATES = {
+  Premium: [
+    { max: 99999,    rate: 0.0190, label: '$0 – $99,999'           },
+    { max: 499999,   rate: 0.0185, label: '$100,000 – $499,999'    },
+    { max: 999999,   rate: 0.0180, label: '$500,000 – $999,999'    },
+    { max: Infinity, rate: 0.0175, label: 'Over $1,000,000'        },
+  ],
+  Regular: [
+    { max: 99999,    rate: 0.0205, label: '$0 – $99,999'           },
+    { max: 499999,   rate: 0.0200, label: '$100,000 – $499,999'    },
+    { max: 999999,   rate: 0.0195, label: '$500,000 – $999,999'    },
+    { max: Infinity, rate: 0.0190, label: 'Over $1,000,000'        },
+  ],
+  Free: [
+    { max: 99999,    rate: 0.0210, label: '$0 – $99,999'           },
+    { max: 499999,   rate: 0.0205, label: '$100,000 – $499,999'    },
+    { max: 999999,   rate: 0.0200, label: '$500,000 – $999,999'    },
+    { max: Infinity, rate: 0.0195, label: 'Over $1,000,000'        },
+  ],
+};
+
+function getAmexTier(plan, amount) {
+  const tiers = AMEX_TIERED_RATES[plan] || AMEX_TIERED_RATES['Premium'];
+  return tiers.find(t => amount <= t.max) || tiers[tiers.length - 1];
+}
+
+// ════════════════════════════════════════
+// CARDS DATA (69 Australian credit cards)
+// ════════════════════════════════════════
+// Structure:
+//   name, bank, type (AMEX/Visa/Mastercard), annualFee,
+//   baseEarn (pts per $1 general spend), govtEarn (pts per $1 govt spend),
+//   monthlyCap (max pts/month, null=none), postMonthlyCap (earn rate after cap, null=0),
+//   annualCap  (max pts/year,  null=none), postAnnualCap  (earn rate after cap, null=0),
+//   directProgram (string if earns directly into that program, null if transfer card),
+//   partners: [{a: 'Program Name', r: ratio}]  (r = card pts needed for 1 FF pt)
+//   phLink: PointHacks article URL
+const CARDS = [
+  // ── American Express ──────────────────────────────────────────────────────
+  {
+    name:'AMEX Qantas Business Rewards', bank:'American Express', type:'AMEX', program:'Qantas Frequent Flyer',
+    annualFee:450, baseEarn:1.25, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:500000, postAnnualCap:0.75,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-qantas-business-rewards-card-guide/'
+  },
+  // ── American Express (continued) ──────────────────────────────────────────
+  {
+    name:'American Express Platinum Card', bank:'American Express', type:'AMEX', program:'Membership Rewards Ascent Premium',
+    annualFee:1450, baseEarn:2.25, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Qantas Frequent Flyer',r:2},{a:'Velocity Frequent Flyer',r:2},
+      {a:'Singapore KrisFlyer',r:3},{a:'British Airways Avios',r:3},
+      {a:'Cathay Asia Miles',r:3},{a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-platinum-guide/'
+  },
+  {
+    name:'American Express Platinum Business', bank:'American Express', type:'AMEX', program:'Membership Rewards Ascent Premium',
+    annualFee:1750, baseEarn:2.25, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Qantas Frequent Flyer',r:2},{a:'Velocity Frequent Flyer',r:2},
+      {a:'Singapore KrisFlyer',r:3},{a:'British Airways Avios',r:3},
+      {a:'Cathay Asia Miles',r:3},{a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-platinum-business-guide/'
+  },
+  {
+    name:'Qantas American Express Ultimate', bank:'American Express', type:'AMEX', program:'Qantas Frequent Flyer',
+    annualFee:450, baseEarn:1.25, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:100000, postAnnualCap:1,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/qantas-american-express-ultimate-guide/'
+  },
+  {
+    name:'American Express Explorer', bank:'American Express', type:'AMEX', program:'American Express Membership Rewards',
+    annualFee:395, baseEarn:2, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},
+      {a:'British Airways Avios',r:3},{a:'Cathay Asia Miles',r:3},
+      {a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-explorer-guide/'
+  },
+  {
+    name:'American Express Business Gold Plus', bank:'American Express', type:'AMEX', program:'American Express Membership Rewards',
+    annualFee:395, baseEarn:1.5, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:200000, postAnnualCap:1,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},
+      {a:'British Airways Avios',r:3},{a:'Cathay Asia Miles',r:3},
+      {a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-business-gold-plus-guide/'
+  },
+  {
+    name:'American Express Velocity Business', bank:'American Express', type:'AMEX', program:'Velocity Frequent Flyer',
+    annualFee:249, baseEarn:1, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-velocity-business-card/'
+  },
+  {
+    name:'American Express Velocity Platinum', bank:'American Express', type:'AMEX', program:'Velocity Frequent Flyer',
+    annualFee:440, baseEarn:1.25, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-velocity-platinum-guide/'
+  },
+  {
+    name:'American Express Essential Rewards', bank:'American Express', type:'AMEX', program:'American Express Membership Rewards',
+    annualFee:108, baseEarn:1, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},
+      {a:'British Airways Avios',r:3},{a:'Cathay Asia Miles',r:3},
+      {a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-essential-rewards-guide/'
+  },
+  {
+    name:'American Express Velocity Escape Plus', bank:'American Express', type:'AMEX', program:'Velocity Frequent Flyer',
+    annualFee:95, baseEarn:1, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:12000, postAnnualCap:0.75,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-velocity-escape-plus-guide/'
+  },
+  {
+    name:'Qantas American Express Discovery', bank:'American Express', type:'AMEX', program:'Qantas Frequent Flyer',
+    annualFee:0, baseEarn:0.75, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/?filter=american-express'
+  },
+  {
+    name:'American Express Platinum Edge', bank:'American Express', type:'AMEX', program:'American Express Membership Rewards',
+    annualFee:195, baseEarn:1, govtEarn:1,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},
+      {a:'British Airways Avios',r:3},{a:'Cathay Asia Miles',r:3},
+      {a:'Qatar Privilege Club',r:3},{a:'Virgin Atlantic',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/american-express-platinum-edge-guide/'
+  },
+  {
+    name:'Qantas American Express Premium', bank:'American Express', type:'AMEX', program:'Qantas Frequent Flyer',
+    annualFee:249, baseEarn:1, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/qantas-american-express-premium-credit-card-guide/'
+  },
+  // ── ANZ ───────────────────────────────────────────────────────────────────
+  {
+    name:'ANZ Rewards Black', bank:'ANZ', type:'Visa', program:'ANZ Rewards',
+    annualFee:375, baseEarn:2, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:1, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Cathay Asia Miles',r:3},
+      {a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-rewards-black-guide/'
+  },
+  {
+    name:'ANZ Qantas Business Rewards', bank:'ANZ', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:375, baseEarn:0.75, govtEarn:0.5,
+    monthlyCap:11250, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-qantas-business-rewards-guide/'
+  },
+  {
+    name:'ANZ Rewards Velocity Platinum', bank:'ANZ', type:'Visa', program:'ANZ Rewards',
+    annualFee:149, baseEarn:1.5, govtEarn:0,
+    monthlyCap:3000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Cathay Asia Miles',r:3},
+      {a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-rewards-travel-adventures-guide/'
+  },
+  {
+    name:'ANZ Business Black', bank:'ANZ', type:'Visa', program:'ANZ Rewards',
+    annualFee:375, baseEarn:1.5, govtEarn:0.5,
+    monthlyCap:15000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Cathay Asia Miles',r:3},
+      {a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-business-black-guide/'
+  },
+  {
+    name:'ANZ Rewards Platinum', bank:'ANZ', type:'Visa', program:'ANZ Rewards',
+    annualFee:149, baseEarn:1.5, govtEarn:0,
+    monthlyCap:3000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Cathay Asia Miles',r:3},
+      {a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-rewards-platinum-guide/'
+  },
+  {
+    name:'ANZ Frequent Flyer Black', bank:'ANZ', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:425, baseEarn:1, govtEarn:0,
+    monthlyCap:7500, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/anz-frequent-flyer-black-guide/'
+  },
+  // ── Bank Australia ────────────────────────────────────────────────────────
+  {
+    name:'Bank Australia Qantas Platinum', bank:'Bank Australia', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:189, baseEarn:0.75, govtEarn:0,
+    monthlyCap:20000, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bank-australia-qantas-platinum/'
+  },
+  // ── Bank of Melbourne ─────────────────────────────────────────────────────
+  {
+    name:'Bank of Melbourne Amplify Qantas Platinum', bank:'Bank of Melbourne', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:124, baseEarn:0.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:50000, postAnnualCap:0,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bank-of-melbourne-amplify-qantas-platinum/'
+  },
+  {
+    name:'Bank of Melbourne Amplify Rewards Signature', bank:'Bank of Melbourne', type:'Visa', program:'Amplify Rewards',
+    annualFee:295, baseEarn:1.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bank-of-melbourne-amplify-signature-guide/'
+  },
+  {
+    name:'Bank of Melbourne Amplify Qantas Signature', bank:'Bank of Melbourne', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:295, baseEarn:0.75, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:187500, postAnnualCap:0,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bank-of-melbourne-amplify-qantas-signature/'
+  },
+  // ── BankSA ────────────────────────────────────────────────────────────────
+  {
+    name:'BankSA Amplify Rewards Platinum', bank:'BankSA', type:'Visa', program:'Amplify Rewards',
+    annualFee:124, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/banksa-amplify-platinum-guide/'
+  },
+  {
+    name:'BankSA Amplify Qantas Platinum', bank:'BankSA', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:124, baseEarn:0.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/banksa-amplify-qantas-guide/'
+  },
+  {
+    name:'BankSA Amplify Rewards Signature', bank:'BankSA', type:'Visa', program:'Amplify Rewards',
+    annualFee:295, baseEarn:1.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/banksa-amplify-signature-guide/'
+  },
+  {
+    name:'BankSA Amplify Qantas Signature', bank:'BankSA', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:295, baseEarn:0.75, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/banksa-amplify-qantas-signature/'
+  },
+  // ── Bankwest ──────────────────────────────────────────────────────────────
+  {
+    name:'Bankwest Qantas World Mastercard', bank:'Bankwest', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:270, baseEarn:1, govtEarn:0,
+    monthlyCap:5000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bankwest-qantas-world-mastercard-guide/'
+  },
+  {
+    name:'Bankwest Qantas Platinum', bank:'Bankwest', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:160, baseEarn:0.75, govtEarn:0,
+    monthlyCap:1500, postMonthlyCap:0.3, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/bankwest-qantas-platinum-mastercard-guide/'
+  },
+  // ── BOQ Specialist ────────────────────────────────────────────────────────
+  {
+    name:'BOQ Qantas Platinum', bank:'BOQ Specialist', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:150, baseEarn:0.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/boq-specialist-qantas-visa-platinum/'
+  },
+  {
+    name:'BOQ Velocity Platinum', bank:'BOQ Specialist', type:'Visa', program:'Velocity Frequent Flyer',
+    annualFee:150, baseEarn:0.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/boq-specialist-visa-platinum/'
+  },
+  {
+    name:'BOQ Qantas Signature', bank:'BOQ Specialist', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:400, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/boq-specialist-qantas-visa-signature/'
+  },
+  {
+    name:'BOQ Velocity Signature', bank:'BOQ Specialist', type:'Visa', program:'Velocity Frequent Flyer',
+    annualFee:400, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/boq-specialist-visa-signature/'
+  },
+  // ── Commonwealth Bank ─────────────────────────────────────────────────────
+  {
+    name:'CommBank Ultimate Awards', bank:'Commonwealth Bank', type:'Mastercard', program:'CBA Awards Platinum & Diamond',
+    annualFee:420, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/commbank-ultimate-awards-guide/'
+  },
+  {
+    name:'CommBank Business Platinum Awards', bank:'Commonwealth Bank', type:'Mastercard', program:'CBA Awards Platinum & Diamond',
+    annualFee:0, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:300000, postAnnualCap:0,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/commbank-business-awards-guide/'
+  },
+  {
+    name:'CommBank Awards Card', bank:'Commonwealth Bank', type:'Mastercard', program:'CBA Awards Classic & Gold',
+    annualFee:59, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:50000, postAnnualCap:0,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2.5}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/commbank-smart-awards-guide/'
+  },
+  // ── HSBC ──────────────────────────────────────────────────────────────────
+  {
+    name:'HSBC Star Alliance', bank:'HSBC', type:'Visa', program:'Star Alliance Rewards',
+    annualFee:499, baseEarn:1, govtEarn:0,
+    monthlyCap:3000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Singapore KrisFlyer',r:1},{a:'Air Canada Aeroplan',r:1},
+      {a:'United MileagePlus',r:1},{a:'Thai Royal Orchid Plus',r:1}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/hsbc-star-alliance-guide/'
+  },
+  {
+    name:'HSBC Platinum Qantas', bank:'HSBC', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:399, baseEarn:1, govtEarn:0,
+    monthlyCap:1000, postMonthlyCap:0.5, annualCap:120000, postAnnualCap:0,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/hsbc-platinum-qantas-guide/'
+  },
+  // ── MyCard ────────────────────────────────────────────────────────────────
+  {
+    name:'MyCard Premier Qantas', bank:'MyCard', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:350, baseEarn:0.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:100000, postAnnualCap:0,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/mycard-qantas-world-elite-guide/'
+  },
+  {
+    name:'MyCard Premier Velocity', bank:'MyCard', type:'Mastercard', program:'MyCard Rewards Premier',
+    annualFee:300, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:200000, postAnnualCap:0,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/mycard-velocity-world-elite-guide/'
+  },
+  {
+    name:'MyCard Prestige', bank:'MyCard', type:'Mastercard', program:'MyCard Rewards Prestige',
+    annualFee:700, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/mycard-global-travel-guide/'
+  },
+  {
+    name:'MyCard Rewards', bank:'MyCard', type:'Mastercard', program:'MyCard Rewards',
+    annualFee:199, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/mycard-velocity-platinum/'
+  },
+  {
+    name:'MyCard Rewards Velocity', bank:'MyCard', type:'Mastercard', program:'MyCard Rewards',
+    annualFee:199, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/mycard-qantas-platinum/'
+  },
+  // ── NAB ───────────────────────────────────────────────────────────────────
+  {
+    name:'NAB Rewards Signature', bank:'NAB', type:'Visa', program:'NAB Rewards',
+    annualFee:420, baseEarn:1.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-rewards-signature-guide/'
+  },
+  {
+    name:'NAB Qantas Business Signature', bank:'NAB', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:295, baseEarn:0.66, govtEarn:0.66,
+    monthlyCap:33000, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-qantas-business-signature-guide/'
+  },
+  {
+    name:'NAB Rewards Platinum (Velocity)', bank:'NAB', type:'Visa', program:'NAB Rewards',
+    annualFee:195, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-rewards-platinum-guide/'
+  },
+  {
+    name:'NAB Rewards Signature (Velocity)', bank:'NAB', type:'Visa', program:'NAB Rewards',
+    annualFee:420, baseEarn:1.5, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-rewards-signature-guide/'
+  },
+  {
+    name:'NAB Rewards Business Signature', bank:'NAB', type:'Visa', program:'NAB Rewards',
+    annualFee:175, baseEarn:1.25, govtEarn:1.25,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-rewards-business-signature-guide/'
+  },
+  {
+    name:'NAB Qantas Rewards Signature', bank:'NAB', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:420, baseEarn:1, govtEarn:0,
+    monthlyCap:15000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-qantas-rewards-signature-guide/'
+  },
+  {
+    name:'NAB Qantas Rewards Premium', bank:'NAB', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:295, baseEarn:0.66, govtEarn:0,
+    monthlyCap:3480, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-qantas-rewards-premium-guide/'
+  },
+  {
+    name:'NAB Rewards Platinum', bank:'NAB', type:'Visa', program:'NAB Rewards',
+    annualFee:195, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-rewards-platinum-guide/'
+  },
+  {
+    name:'NAB Qantas Rewards', bank:'NAB', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:95, baseEarn:0.5, govtEarn:0,
+    monthlyCap:1500, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/nab-qantas-rewards-guide/'
+  },
+  // ── Qantas Money ──────────────────────────────────────────────────────────
+  {
+    name:'Qantas Money Platinum', bank:'Qantas Money', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:399, baseEarn:1, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/qantas-money-premier-platinum-guide/'
+  },
+  {
+    name:'Qantas Money Titanium', bank:'Qantas Money', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:1200, baseEarn:1.25, govtEarn:0,
+    monthlyCap:15625, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/qantas-money-premier-titanium-guide/'
+  },
+  {
+    name:'Qantas Money Everyday', bank:'Qantas Money', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:99, baseEarn:0.75, govtEarn:0,
+    monthlyCap:2250, postMonthlyCap:0.4, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/qantas-money-premier-everyday-guide/'
+  },
+  // ── St.George ─────────────────────────────────────────────────────────────
+  {
+    name:'St.George Amplify Rewards Signature', bank:'St.George', type:'Visa', program:'Amplify Rewards',
+    annualFee:295, baseEarn:2, govtEarn:0,
+    monthlyCap:30000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/st-george-amplify-signature-guide/'
+  },
+  {
+    name:'St.George Amplify Qantas Signature', bank:'St.George', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:370, baseEarn:0.8, govtEarn:0,
+    monthlyCap:12000, postMonthlyCap:0.25, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/st-george-amplify-qantas-signature/'
+  },
+  {
+    name:'St.George Amplify Rewards Platinum', bank:'St.George', type:'Visa', program:'Amplify Rewards',
+    annualFee:175, baseEarn:1.25, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/st-george-amplify-platinum-guide/'
+  },
+  {
+    name:'St.George Amplify Qantas Platinum', bank:'St.George', type:'Visa', program:'Qantas Frequent Flyer',
+    annualFee:250, baseEarn:0.5, govtEarn:0,
+    monthlyCap:3500, postMonthlyCap:0.2, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/st-george-amplify-qantas-platinum/'
+  },
+  {
+    name:'St.George Amplify Rewards Classic', bank:'St.George', type:'Visa', program:'Amplify Rewards',
+    annualFee:79, baseEarn:1, govtEarn:0,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[{a:'Velocity Frequent Flyer',r:2},{a:'Singapore KrisFlyer',r:3}],
+    phLink:'https://www.pointhacks.com.au/credit-cards/st-george-amplify-classic/'
+  },
+  // ── Westpac ───────────────────────────────────────────────────────────────
+  {
+    name:'Westpac Altitude Qantas Black', bank:'Westpac', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:370, baseEarn:0.8, govtEarn:0,
+    monthlyCap:8000, postMonthlyCap:0.4, annualCap:187500, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-black-qantas-guide/'
+  },
+  {
+    name:'Westpac Altitude Rewards Black', bank:'Westpac', type:'Mastercard', program:'Altitude Rewards',
+    annualFee:295, baseEarn:2, govtEarn:0,
+    monthlyCap:30000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:3},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-black-guide/'
+  },
+  {
+    name:'Westpac Altitude Velocity Black', bank:'Westpac', type:'Mastercard', program:'Velocity Frequent Flyer',
+    annualFee:370, baseEarn:0.8, govtEarn:0,
+    monthlyCap:30000, postMonthlyCap:0.4, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-black-guide/'
+  },
+  {
+    name:'Westpac Altitude Qantas Platinum', bank:'Westpac', type:'Mastercard', program:'Qantas Frequent Flyer',
+    annualFee:250, baseEarn:0.5, govtEarn:0,
+    monthlyCap:3750, postMonthlyCap:0.2, annualCap:null, postAnnualCap:null,
+    directProgram:'Qantas Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-platinum-qantas-guide/'
+  },
+  {
+    name:'Westpac Altitude Rewards Platinum', bank:'Westpac', type:'Mastercard', program:'Altitude Rewards',
+    annualFee:175, baseEarn:1.25, govtEarn:0,
+    monthlyCap:10000, postMonthlyCap:0.5, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Velocity Frequent Flyer',r:3},{a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-platinum-guide/'
+  },
+  {
+    name:'Westpac Altitude Velocity Platinum', bank:'Westpac', type:'Mastercard', program:'Velocity Frequent Flyer',
+    annualFee:250, baseEarn:0.5, govtEarn:0,
+    monthlyCap:3750, postMonthlyCap:0.2, annualCap:null, postAnnualCap:null,
+    directProgram:'Velocity Frequent Flyer', partners:[],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-altitude-platinum-guide/'
+  },
+  {
+    name:'Westpac Altitude Business Platinum', bank:'Westpac', type:'Mastercard', program:'Altitude Business Rewards',
+    annualFee:200, baseEarn:1, govtEarn:0.5,
+    monthlyCap:null, postMonthlyCap:null, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Qantas Frequent Flyer',r:3},{a:'Velocity Frequent Flyer',r:3},
+      {a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-business-altitude-black-guide/'
+  },
+  {
+    name:'Westpac Altitude Business Gold', bank:'Westpac', type:'Mastercard', program:'Altitude Business Rewards',
+    annualFee:150, baseEarn:1, govtEarn:0.5,
+    monthlyCap:20000, postMonthlyCap:0, annualCap:null, postAnnualCap:null,
+    directProgram:null,
+    partners:[
+      {a:'Qantas Frequent Flyer',r:3},{a:'Velocity Frequent Flyer',r:3},
+      {a:'Singapore KrisFlyer',r:3},{a:'Cathay Asia Miles',r:3}
+    ],
+    phLink:'https://www.pointhacks.com.au/credit-cards/westpac-business-altitude-platinum-guide/'
+  },
+];
+
+// ════════════════════════════════════════
+// CARD POINTS CALCULATION (with cap logic)
+// ════════════════════════════════════════
+function calcCardPts(card, amount, txnType) {
+  if (!card) return {pts:0, capHit:false, capType:null, cap:null, postRate:null};
+  const base = card.baseEarn || 0;
+  if (base === 0) return {pts:0, capHit:false, capType:null, cap:null, postRate:null};
+
+  const pmc = card.postMonthlyCap != null ? card.postMonthlyCap : 0;
+  const pac = card.postAnnualCap  != null ? card.postAnnualCap  : 0;
+
+  // ── SINGLE or MONTHLY ── apply monthly cap fully
+  if (txnType === 'single' || txnType === 'monthly') {
+    if (card.monthlyCap != null) {
+      const capSpend = card.monthlyCap / base;
+      if (amount > capSpend) {
+        const pts = card.monthlyCap + (amount - capSpend) * pmc;
+        return {pts, capHit:true, capType:'monthly', cap:card.monthlyCap, postRate:pmc};
+      }
+    }
+    return {pts: amount * base, capHit:false, capType:null, cap:null, postRate:null};
+  }
+
+  // ── ANNUAL ── divide by 12, apply monthly cap, × 12; then annual ceiling
+  if (txnType === 'annual') {
+    let annualPts = amount * base;
+    let capHit = false, capType = null, cap = null, postRate = null;
+
+    if (card.monthlyCap != null) {
+      const monthlyAmount = amount / 12;
+      const capSpend = card.monthlyCap / base;
+      if (monthlyAmount > capSpend) {
+        const monthlyPts = card.monthlyCap + (monthlyAmount - capSpend) * pmc;
+        annualPts = monthlyPts * 12;
+        capHit = true; capType = 'monthly_annual'; cap = card.monthlyCap; postRate = pmc;
+      }
+    }
+
+    if (card.annualCap != null) {
+      if (capHit) {
+        // Monthly cap already applied — annual cap is a hard ceiling on top
+        if (annualPts > card.annualCap) {
+          annualPts = card.annualCap;
+          capType = 'annual'; cap = card.annualCap; postRate = pac;
+        }
+      } else {
+        // No monthly cap hit — check pure annual cap
+        const capSpend = card.annualCap / base;
+        if (amount > capSpend) {
+          annualPts = card.annualCap + (amount - capSpend) * pac;
+          capHit = true; capType = 'annual'; cap = card.annualCap; postRate = pac;
+        }
+      }
+    }
+
+    return {pts: annualPts, capHit, capType, cap, postRate};
+  }
+
+  return {pts: amount * base, capHit:false, capType:null, cap:null, postRate:null};
+}
+
+// ════════════════════════════════════════
+// DROPDOWN BUILDERS
+// ════════════════════════════════════════
+function buildPaymentDropdown() {
+  const sel = document.getElementById('payMethod');
+  sel.innerHTML = '';
+  const noCard = document.createElement('option');
+  noCard.value = 'Bank Account'; noCard.textContent = 'Bank Account (No Card)';
+  sel.appendChild(noCard);
+
+  const banks = {};
+  CARDS.forEach(c => { if (!banks[c.bank]) banks[c.bank] = []; banks[c.bank].push(c); });
+  Object.keys(banks).sort().forEach(bank => {
+    const grp = document.createElement('optgroup');
+    grp.label = bank;
+    banks[bank].forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name; opt.textContent = c.name;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+}
+
+function buildFlightsCardDropdown() {
+  const sel = document.getElementById('lf-card');
+  sel.innerHTML = '';
+  const noCard = document.createElement('option');
+  noCard.value = 'Bank Account'; noCard.textContent = 'Bank Account (No Card)';
+  sel.appendChild(noCard);
+
+  const banks = {};
+  CARDS.forEach(c => { if (!banks[c.bank]) banks[c.bank] = []; banks[c.bank].push(c); });
+  Object.keys(banks).sort().forEach(bank => {
+    const grp = document.createElement('optgroup');
+    grp.label = bank;
+    banks[bank].forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name; opt.textContent = c.name;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+}
+
+function rebuildPartnerDropdown(card) {
+  const sel = document.getElementById('transferPartner');
+  const prev = sel.value;
+  sel.innerHTML = '';
+
+  let options = [];
+  if (!card) {
+    // Bank Account — PRP airlines only
+    options = Object.keys(PRP_RATES).map(k => {
+      // Map short key to full program name
+      const fullNames = {
+        'Air Canada':'Air Canada Aeroplan','British Airways':'British Airways Avios',
+        'Cathay':'Cathay Asia Miles','China Southern':'China Southern Sky Pearl',
+        'Japan Airlines':'Japan Airlines Mileage Bank','Qatar':'Qatar Privilege Club',
+        'Qantas':'Qantas Frequent Flyer','Singapore':'Singapore KrisFlyer',
+        'Thai Airways':'Thai Royal Orchid Plus','United':'United MileagePlus',
+        'Vietnam':'Vietnam Airlines Lotusmiles','Virgin':'Velocity Frequent Flyer'
+      };
+      return fullNames[k] || k;
+    });
+  } else if (card.directProgram) {
+    options = [card.directProgram];
+  } else {
+    options = card.partners.map(p => p.a);
+  }
+
+  options.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    if (name === prev) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (!sel.value && options.length) sel.value = options[0];
+}
+
+function onCardChange() {
+  const cardName = document.getElementById('payMethod').value;
+  const card = CARDS.find(c => c.name === cardName) || null;
+  rebuildPartnerDropdown(card);
+  renderCardPanel(card);
+  calculate();
+}
+
+// ════════════════════════════════════════
+// CARD INFO PANEL
+// ════════════════════════════════════════
+function renderCardPanel(card) {
+  const panel = document.getElementById('card-panel');
+  if (!card) { panel.style.display = 'none'; return; }
+  const typeCls = card.type === 'AMEX' ? 'type-amex' : card.type === 'Visa' ? 'type-visa' : 'type-mc';
+  const programText = card.program || card.directProgram || 'Transfer Card';
+  const feeText = card.annualFee > 0 ? '$' + card.annualFee.toLocaleString('en-AU') + '/yr' : 'No annual fee';
+  const capText = card.monthlyCap ? fmtPts(card.monthlyCap) + ' pts/mo' : card.annualCap ? fmtPts(card.annualCap) + ' pts/yr' : 'No cap';
+  const postCapText = (card.monthlyCap || card.annualCap) ? (card.postMonthlyCap || card.postAnnualCap || 0) + ' pts/$' : '—';
+
+  let partnersHtml = '';
+  if (card.directProgram) {
+    partnersHtml = `<span class="ci-direct-badge">Direct earn → ${card.directProgram}</span>`;
+  } else if (card.partners.length) {
+    partnersHtml = card.partners.map(p => `<span class="ci-partner-tag">${p.a} (${p.r}:1)</span>`).join('');
+  } else {
+    partnersHtml = '<span style="color:var(--muted);font-size:12px;">No transfer partners</span>';
+  }
+
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="card-info-panel">
+      <div class="ci-header">
+        <div>
+          <div class="ci-name">${card.name} <span class="type-badge ${typeCls}">${card.type}</span></div>
+          <div class="ci-meta">${card.bank} &nbsp;·&nbsp; <em>${programText}</em></div>
+        </div>
+        <a href="${card.phLink}" target="_blank" rel="noopener" class="ci-link">PointHacks Review ↗</a>
+      </div>
+      <div class="ci-grid">
+        <div class="ci-stat"><div class="ci-stat-lbl">Annual Fee</div><div class="ci-stat-val">${feeText}</div></div>
+        <div class="ci-stat"><div class="ci-stat-lbl">Base Earn</div><div class="ci-stat-val">${card.baseEarn} pts/$1</div></div>
+        <div class="ci-stat"><div class="ci-stat-lbl">Govt Earn</div><div class="ci-stat-val">${card.govtEarn} pts/$1</div></div>
+        <div class="ci-stat"><div class="ci-stat-lbl">Points Cap</div><div class="ci-stat-val">${capText}</div></div>
+        ${(card.monthlyCap || card.annualCap) ? `<div class="ci-stat"><div class="ci-stat-lbl">Post-Cap Earn</div><div class="ci-stat-val">${postCapText}</div></div>` : ''}
+      </div>
+      <div class="ci-partners-title">Transfer Partners / Program</div>
+      <div>${partnersHtml}</div>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+// CAP ALERT
+// ════════════════════════════════════════
+function renderCapAlert(s1) {
+  const alertEl = document.getElementById('cap-alert');
+  if (!s1.capHit) { alertEl.style.display = 'none'; return; }
+  alertEl.style.display = 'block';
+
+  const base     = s1.card.baseEarn || 1;
+  const txnLabel = s1.txnType === 'single' ? 'transaction' : s1.txnType === 'monthly' ? 'monthly spend' : 'annual spend';
+  let msg = '';
+
+  if (s1.capType === 'monthly') {
+    // Applies to single transactions and monthly spend
+    const capSpend  = s1.cap / base;
+    const extraSpend = s1.amount - capSpend;
+    const extraPts  = extraSpend * (s1.postRate || 0);
+    const rateNote  = s1.postRate > 0
+      ? `Remaining spend of <strong>${fmtAUD(extraSpend)}</strong> earns at the reduced rate of <strong>${s1.postRate} pts/$1</strong>, adding <strong>${fmtPts(extraPts)} pts</strong>.`
+      : `No points are earned on the remaining <strong>${fmtAUD(extraSpend)}</strong> spend beyond the cap.`;
+    msg = `<div class="cap-title">⚠ Monthly Points Cap Applied</div>
+      This card caps points earn at <strong>${fmtPts(s1.cap)} points per month</strong> (hit at <strong>${fmtAUD(capSpend)}</strong> spend).
+      Your ${txnLabel} of <strong>${fmtAUD(s1.amount)}</strong> exceeds this cap.
+      ${rateNote}
+      Total card points earned: <strong>${fmtPts(s1.cardPts)}</strong>.`;
+
+  } else if (s1.capType === 'monthly_annual') {
+    // Annual spend: monthly cap × 12 logic
+    const monthlyAmount = s1.amount / 12;
+    const capSpend      = s1.cap / base;
+    const monthlyPts    = s1.cap + (monthlyAmount - capSpend) * (s1.postRate || 0);
+    const rateNote      = s1.postRate > 0
+      ? `Each month, spend beyond <strong>${fmtAUD(capSpend)}</strong> earns at the reduced rate of <strong>${s1.postRate} pts/$1</strong>.`
+      : `No points are earned on monthly spend beyond <strong>${fmtAUD(capSpend)}</strong>.`;
+    msg = `<div class="cap-title">⚠ Monthly Points Cap Applied to Annual Spend</div>
+      This card caps earn at <strong>${fmtPts(s1.cap)} points per month</strong>.
+      Your annual spend of <strong>${fmtAUD(s1.amount)}</strong> ÷ 12 = <strong>${fmtAUD(monthlyAmount)}/month</strong>, which exceeds the cap threshold of <strong>${fmtAUD(capSpend)}/month</strong>.
+      ${rateNote}
+      Estimated monthly points: <strong>${fmtPts(monthlyPts)}</strong> → annualised total: <strong>${fmtPts(s1.cardPts)}</strong>.`;
+
+  } else if (s1.capType === 'annual') {
+    // Pure annual cap (no monthly cap triggered, or monthly cap already applied and annual is the hard ceiling)
+    const capSpend  = s1.cap / base;
+    const extraPts  = s1.postRate > 0 ? (s1.amount - capSpend) * s1.postRate : 0;
+    const rateNote  = s1.postRate > 0
+      ? `Remaining spend of <strong>${fmtAUD(s1.amount - capSpend)}</strong> earns at <strong>${s1.postRate} pts/$1</strong>, adding <strong>${fmtPts(extraPts)} pts</strong>.`
+      : `No additional points are earned beyond the annual cap.`;
+    msg = `<div class="cap-title">⚠ Annual Points Cap Applied</div>
+      This card caps earn at <strong>${fmtPts(s1.cap)} points per year</strong> (hit at <strong>${fmtAUD(capSpend)}</strong> spend).
+      Your annual spend of <strong>${fmtAUD(s1.amount)}</strong> exceeds this cap.
+      ${rateNote}
+      Total card points earned: <strong>${fmtPts(s1.cardPts)}</strong>.`;
+  }
+
+  alertEl.innerHTML = `<div class="cap-alert-box">${msg}</div>`;
+}
+
+// ════════════════════════════════════════
+// CARDS REFERENCE TABLE
+// ════════════════════════════════════════
+function renderCardsTable() {
+  const q = (document.getElementById('cr-search')?.value || '').toLowerCase();
+  const tbody = document.getElementById('cards-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const filtered = q ? CARDS.filter(c =>
+    c.name.toLowerCase().includes(q) || c.bank.toLowerCase().includes(q) ||
+    (c.directProgram||'').toLowerCase().includes(q) ||
+    c.partners.some(p => p.a.toLowerCase().includes(q))
+  ) : CARDS;
+
+  filtered.forEach((c, i) => {
+    const typeCls = c.type === 'AMEX' ? 'type-amex' : c.type === 'Visa' ? 'type-visa' : 'type-mc';
+    const prog = c.program || c.directProgram || '—';
+    const fee  = c.annualFee > 0 ? '$' + c.annualFee : 'Nil';
+    const mcap = c.monthlyCap ? fmtPts(c.monthlyCap) : '—';
+    const acap = c.annualCap  ? fmtPts(c.annualCap)  : '—';
+    const pcap = (c.monthlyCap || c.annualCap) ? (c.postMonthlyCap || c.postAnnualCap || 0) : '—';
+    const plinks = c.directProgram
+      ? `<span class="ci-direct-badge" style="font-size:10px;">${c.directProgram}</span>`
+      : c.partners.map(p => `<span class="ci-partner-tag">${p.a} <span style="color:var(--muted)">(${p.r}:1)</span></span>`).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td><a href="${c.phLink}" target="_blank" class="card-link">${c.name}</a></td>
+      <td>${c.bank}</td>
+      <td><span class="type-badge ${typeCls}">${c.type}</span></td>
+      <td style="font-size:11px;">${prog}</td>
+      <td class="num">${fee}</td>
+      <td class="num">${c.baseEarn}</td>
+      <td class="num">${c.govtEarn}</td>
+      <td class="num">${mcap}</td>
+      <td class="num">${acap}</td>
+      <td class="num">${pcap}</td>
+      <td style="font-size:11px;">${plinks || '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+  if (!filtered.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="12" style="text-align:center;padding:24px;color:var(--muted);">No cards match your search.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+let FLIGHTS = [
+  {id:1,  from:'Adelaide',  to:'Singapore',       airline:'Singapore', cls:'Business', dep:"Nov '26", ff:144000, taxes:233,    cash:4883},
+  {id:2,  from:'Adelaide',  to:'Singapore',       airline:'Singapore', cls:'Economy',  dep:"Nov '26", ff:58000,  taxes:100,    cash:1350},
+  {id:3,  from:'Adelaide',  to:'Delhi',           airline:'Singapore', cls:'Business', dep:"Nov '26", ff:200000, taxes:234,    cash:5734},
+  {id:4,  from:'Brisbane',  to:'Delhi',           airline:'Qatar',     cls:'Business', dep:"Feb '27", ff:160000, taxes:850,    cash:12840},
+  {id:5,  from:'Brisbane',  to:'Milan',           airline:'Qatar',     cls:'Business', dep:"Nov '26", ff:360000, taxes:850,    cash:11121},
+  {id:6,  from:'Brisbane',  to:'London',          airline:'Qatar',     cls:'Economy',  dep:"Oct '26", ff:90000,  taxes:200,    cash:2652},
+  {id:7,  from:'Brisbane',  to:'Delhi',           airline:'Singapore', cls:'Business', dep:"Jan '27", ff:200000, taxes:300,    cash:6480},
+  {id:8,  from:'Brisbane',  to:'Shanghai',        airline:'Qantas',    cls:'Business', dep:"Oct '26", ff:216000, taxes:0,      cash:4752},
+  {id:9,  from:'Melbourne', to:'Denpasar (Bali)', airline:'Singapore', cls:'Business', dep:"Nov '26", ff:151000, taxes:150,    cash:4605},
+  {id:10, from:'Melbourne', to:'Auckland',        airline:'Qantas',    cls:'Economy',  dep:"Dec '26", ff:41400,  taxes:190,    cash:797},
+  {id:11, from:'Melbourne', to:'Brisbane',        airline:'Qantas',    cls:'Business', dep:"Jun '26", ff:58000,  taxes:0,      cash:2128},
+  {id:12, from:'Melbourne', to:'Paris',           airline:'Singapore', cls:'Business', dep:"Jan '27", ff:282000, taxes:750,    cash:10190},
+  {id:13, from:'Melbourne', to:'Paris',           airline:'Singapore', cls:'Business', dep:"Jan '27", ff:282000, taxes:473.73, cash:9601.73},
+  {id:14, from:'Melbourne', to:'Brussels',        airline:'Singapore', cls:'Business', dep:"Nov '26", ff:282000, taxes:750,    cash:10100},
+  {id:15, from:'Melbourne', to:'Ho Chi Minh',     airline:'Singapore', cls:'Business', dep:"Aug '26", ff:151000, taxes:750,    cash:4616},
+  {id:16, from:'Melbourne', to:'Edinburgh',       airline:'Qatar',     cls:'Business', dep:"Oct '26", ff:360000, taxes:750,    cash:12740},
+  {id:17, from:'Melbourne', to:'Perth',           airline:'Virgin',    cls:'Business', dep:"Nov '26", ff:71000,  taxes:104,    cash:2982},
+  {id:18, from:'Melbourne', to:'San Francisco',   airline:'Cathay',    cls:'Economy',  dep:"Oct '26", ff:76000,  taxes:150,    cash:2650},
+  {id:19, from:'Melbourne', to:'Vancouver',       airline:'Cathay',    cls:'Economy',  dep:"Nov '26", ff:76000,  taxes:150,    cash:2380},
+  {id:20, from:'Melbourne', to:'Canberra',        airline:'Qantas',    cls:'Economy',  dep:"Sep '26", ff:18400,  taxes:140,    cash:450},
+  {id:21, from:'Melbourne', to:'Manila',          airline:'Qantas',    cls:'Economy',  dep:"Nov '26", ff:58000,  taxes:416,    cash:1309},
+  {id:22, from:'Perth',     to:'Kuala Lumpur',    airline:'Singapore', cls:'Business', dep:"Nov '26", ff:89000,  taxes:233,    cash:4363},
+  {id:23, from:'Perth',     to:'Doha',            airline:'Qatar',     cls:'Economy',  dep:"Jan '27", ff:84000,  taxes:300,    cash:1805},
+  {id:24, from:'Sydney',    to:'London',          airline:'Qatar',     cls:'Economy',  dep:"Nov '26", ff:105400, taxes:800,    cash:2419},
+  {id:25, from:'Sydney',    to:'Ho Chi Minh City',airline:'Singapore', cls:'Economy',  dep:"Jun '26", ff:61000,  taxes:140,    cash:1290},
+  {id:26, from:'Sydney',    to:'Hong Kong',       airline:'Cathay',    cls:'Business', dep:"Sep '26", ff:116000, taxes:130,    cash:7100},
+  {id:27, from:'Sydney',    to:'Ho Chi Minh',     airline:'Vietnam',   cls:'Economy',  dep:"Sep '26", ff:110000, taxes:230,    cash:2703},
+  {id:28, from:'Sydney',    to:'Tokyo',           airline:'Qantas',    cls:'Economy',  dep:"Nov '26", ff:76400,  taxes:320,    cash:2020},
+];
+
+function getDestByOrigin() {
+  const map = {};
+  FLIGHTS.forEach(f => {
+    if (!map[f.from]) map[f.from] = new Set();
+    map[f.from].add(f.to);
+  });
+  Object.keys(map).forEach(k => { map[k] = [...map[k]].sort(); });
+  return map;
+}
+
+// ════════════════════════════════════════
+// FORMATTERS
+// ════════════════════════════════════════
+const fmtAUD  = n => n == null ? '—' : '$' + Math.round(n).toLocaleString('en-AU');
+const fmtAUD2 = n => n == null ? '—' : '$' + n.toLocaleString('en-AU', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtPts  = n => n == null ? '—' : Math.round(n).toLocaleString('en-AU');
+const fmtPct  = n => n == null ? '—' : (n * 100).toFixed(2) + '%';
+const fmtCPP  = n => n == null ? '—' : n.toFixed(2) + 'c';
+
+function cppBadge(cpp) {
+  if (cpp == null || cpp === 0) return '<span class="cpp cpp-na">—</span>';
+  const cls = cpp > 3.5 ? 'cpp-great' : cpp >= 2.5 ? 'cpp-good' : 'cpp-low';
+  return `<span class="cpp ${cls}">${fmtCPP(cpp)}</span>`;
+}
+function cppRowClass(cpp) {
+  if (cpp == null || cpp === 0) return '';
+  return cpp > 3.5 ? 'row-great' : cpp >= 2.5 ? 'row-good' : 'row-low';
+}
+
+function set(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+function setH(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+// ════════════════════════════════════════
+// SECTION 1
+// ════════════════════════════════════════
+function calcS1() {
+  const amount        = parseFloat(document.getElementById('payAmount').value) || 0;
+  const cardName      = document.getElementById('payMethod').value;
+  const txnType       = document.getElementById('txnType').value;
+  const prpOpt        = document.getElementById('prpOption').value;
+  const targetAirline = document.getElementById('transferPartner').value;
+  const plan          = document.getElementById('plan').value;
+  const card          = CARDS.find(c => c.name === cardName) || null;
+
+  // Determine fee rate based on card type
+  let planFeeRate = 0, amexTier = null;
+  if (card) {
+    if (card.type === 'AMEX') {
+      amexTier    = txnType === 'single' ? getAmexTier(plan, amount) : null;
+      planFeeRate = amexTier ? amexTier.rate : (PLAN_RATES[plan] || 0);
+    } else if (card.type === 'Visa') {
+      planFeeRate = PLAN_RATES_VISA[plan] || 0.012;
+    } else if (card.type === 'Mastercard') {
+      planFeeRate = PLAN_RATES_MC[plan] || 0.010;
+    }
+  }
+
+  const prpBoosterRate = prpOpt === '2 PRP per $ (+1.8% fee)' ? 0.018
+                       : prpOpt === '1 PRP per $ (+1% fee)'   ? 0.01  : 0;
+  const prpPerDollar   = prpOpt === '2 PRP per $ (+1.8% fee)' ? 2
+                       : prpOpt === '1 PRP per $ (+1% fee)'   ? 1     : 0;
+
+  const totalFeeRate = planFeeRate + prpBoosterRate;
+  const feePre       = amount * totalFeeRate;
+  const feePost      = feePre * 0.75;
+  const prpEarned    = amount * prpPerDollar;
+
+  // Card points with cap logic
+  const {pts: cardPts, capHit, capType, cap, postRate} = calcCardPts(card, amount, txnType);
+
+  // FF points via PRP
+  const prpKey = AIRLINE_TO_PRP[targetAirline];
+  const ffPRP  = (prpKey && PRP_RATES[prpKey] && prpEarned > 0) ? prpEarned / PRP_RATES[prpKey] : 0;
+
+  // FF points via card
+  let ffCard = 0;
+  if (card && cardPts > 0) {
+    if (card.directProgram) {
+      if (card.directProgram === targetAirline) ffCard = cardPts;
+    } else {
+      const p = card.partners.find(x => x.a === targetAirline);
+      if (p) ffCard = cardPts / p.r;
+    }
+  }
+  const totalFF = ffPRP + ffCard;
+
+  return { amount, card, cardName, txnType, prpOpt, targetAirline, plan, amexTier,
+           planFeeRate, prpBoosterRate, prpPerDollar, totalFeeRate,
+           feePre, feePost, prpEarned, cardPts, ffPRP, ffCard, totalFF,
+           capHit, capType, cap, postRate };
+}
+
+// ════════════════════════════════════════
+// SECTION 2
+// ════════════════════════════════════════
+function calcS2(s1) {
+  const airline   = document.getElementById('fsAirline').value;
+  const ffReq     = parseFloat(document.getElementById('fsPoints').value) || 0;
+  const cashPrice = parseFloat(document.getElementById('fsCash').value)   || 0;
+  const taxes     = parseFloat(document.getElementById('fsTaxes').value)  || 0;
+
+  const prpRequired = ffReq * (PRP_RATES[airline] || 0);
+  const spendToEarn = s1.prpPerDollar > 0 ? prpRequired / s1.prpPerDollar : null;
+
+  const feesPre   = spendToEarn != null ? spendToEarn * s1.totalFeeRate : null;
+  const feesPost  = feesPre    != null ? feesPre * 0.75                : null;
+  const totalPre  = feesPre    != null ? feesPre + taxes               : null;
+  const totalPost = feesPost   != null ? feesPost + taxes              : null;
+  const savePre   = totalPre   != null ? cashPrice - totalPre          : null;
+  const savePost  = totalPost  != null ? cashPrice - totalPost         : null;
+  const cpp       = (ffReq > 0 && cashPrice > 0) ? cashPrice / ffReq * 100 : null;
+  const pctPre    = (savePre  != null && cashPrice > 0) ? savePre  / cashPrice * 100 : null;
+  const pctPost   = (savePost != null && cashPrice > 0) ? savePost / cashPrice * 100 : null;
+
+  return { ffReq, cashPrice, taxes, prpRequired, spendToEarn,
+           feesPre, feesPost, totalPre, totalPost, savePre, savePost, cpp, pctPre, pctPost };
+}
+
+// ════════════════════════════════════════
+// FLIGHT ROW CALCULATION (Live Flights)
+// ════════════════════════════════════════
+function calcFlightRow(f, planFeeRate, prpBoosterRate, prpPerDollar, card) {
+  const prpKey      = FLIGHT_AIRLINE_TO_FF[f.airline];
+  const prpRateKey  = Object.keys(PRP_RATES).find(k => {
+    const fullNames = {'Qantas':'Qantas Frequent Flyer','Singapore':'Singapore KrisFlyer','Cathay':'Cathay Asia Miles','Qatar':'Qatar Privilege Club','Virgin':'Velocity Frequent Flyer','British Airways':'British Airways Avios','United':'United MileagePlus','Thai Airways':'Thai Royal Orchid Plus'};
+    return fullNames[k] === prpKey;
+  }) || f.airline;
+  const prpRequired = f.ff * (PRP_RATES[prpRateKey] || PRP_RATES[f.airline] || 3);
+  const totalFeeRate = planFeeRate + prpBoosterRate;
+
+  let spend = null;
+  if (!card) {
+    // Bank Account — PRP only
+    if (prpPerDollar > 0) spend = prpRequired / prpPerDollar;
+  } else if (card.directProgram) {
+    // Direct card — needs to earn into the right program
+    if (card.directProgram === prpKey && card.baseEarn > 0) {
+      spend = f.ff / card.baseEarn;
+    } else if (prpPerDollar > 0) {
+      spend = prpRequired / prpPerDollar;
+    }
+  } else {
+    // Transfer card — find matching partner
+    const p = prpKey ? card.partners.find(x => x.a === prpKey) : null;
+    if (p && card.baseEarn > 0) {
+      spend = (f.ff * p.r) / card.baseEarn;
+    } else if (prpPerDollar > 0) {
+      spend = prpRequired / prpPerDollar;
+    }
+  }
+
+  const fees         = spend != null ? spend * totalFeeRate        : null;
+  const costAfterTax = fees  != null ? fees * 0.75                 : null;
+  const totalCost    = costAfterTax != null ? costAfterTax + f.taxes : null;
+  const saving       = (totalCost != null && f.cash > totalCost) ? f.cash - totalCost : null;
+  const cpp          = f.ff > 0 ? f.cash / f.ff * 100 : 0;
+
+  return { prpRequired, spend, fees, totalCost, costAfterTax, saving, cpp };
+}
+
+// ════════════════════════════════════════
+// BEST AFFORDABLE FLIGHT
+// ════════════════════════════════════════
+function updateBestFlight(s1) {
+  // Match flights where the airline maps to the target airline program
+  const affordable = FLIGHTS.filter(f => {
+    const ffProg = FLIGHT_AIRLINE_TO_FF[f.airline];
+    return ffProg === s1.targetAirline && f.ff <= s1.totalFF;
+  });
+
+  if (!affordable.length) {
+    set('ex-route',   'No matching flight available');
+    set('ex-airline', s1.targetAirline || '—');
+    set('ex-dep',     '—');
+    set('ex-pts',     '—');
+    set('ex-cash',    '—');
+    set('ex-taxes',   '—');
+    set('ex-yourPts', fmtPts(s1.totalFF));
+    set('ex-saving',  '—');
+    setH('ex-status', '<span class="afford-pill afford-no">Earn more points</span>');
+    return;
+  }
+
+  affordable.sort((a, b) => b.cash - a.cash);
+  const f    = affordable[0];
+  const calc = calcFlightRow(f, s1.planFeeRate, s1.prpBoosterRate, s1.prpPerDollar, s1.card);
+
+  set('ex-route',   `${f.from} to ${f.to}`);
+  set('ex-airline', `${f.airline} · ${f.cls}`);
+  set('ex-dep',     f.dep);
+  set('ex-pts',     fmtPts(f.ff));
+  set('ex-cash',    fmtAUD(f.cash));
+  set('ex-taxes',   f.taxes > 0 ? fmtAUD2(f.taxes) : 'Nil');
+  set('ex-yourPts', fmtPts(s1.totalFF));
+  set('ex-saving',  calc.saving != null ? fmtAUD2(calc.saving) : '—');
+  setH('ex-status', '<span class="afford-pill afford-yes">They can book this</span>');
+}
+
+// ════════════════════════════════════════
+// MAIN CALCULATE
+// ════════════════════════════════════════
+function calculate() {
+  const s1 = calcS1();
+  const s2 = calcS2(s1);
+
+  // Update amount label
+  const lblMap = { single: 'Pay Amount — Single Transaction (AUD)', monthly: 'Pay Amount — Monthly Total (AUD)', annual: 'Pay Amount — Annual Total (AUD)' };
+  set('payAmountLabel', lblMap[s1.txnType] || 'Pay Amount (AUD)');
+
+  // Show tier badge when AMEX single transaction
+  const badge = document.getElementById('tierBadge');
+  if (s1.amexTier) {
+    badge.style.display = 'inline-block';
+    badge.textContent = 'AMEX tier: ' + s1.amexTier.label + ' — ' + fmtPct(s1.amexTier.rate);
+  } else {
+    badge.style.display = 'none';
+  }
+
+  // Plan fee rate label — clarify single-txn tiering vs flat
+  const planFeeLabel = document.getElementById('lbl-planFee');
+  if (planFeeLabel) planFeeLabel.textContent = s1.amexTier ? 'AMEX Tiered Rate (single txn)' : 'Plan Fee Rate';
+
+  set('r-planFee',    fmtPct(s1.planFeeRate));
+  set('r-prpBooster', fmtPct(s1.prpBoosterRate));
+  set('r-totalRate',  fmtPct(s1.totalFeeRate));
+  set('r-feePre',     fmtAUD(s1.feePre));
+  set('r-feePost',    fmtAUD(s1.feePost));
+  set('r-prpEarned',  fmtPts(s1.prpEarned));
+  set('r-cardPts',    fmtPts(s1.cardPts));
+  set('r-ffPRP',      s1.ffPRP > 0 ? fmtPts(s1.ffPRP) : (s1.prpPerDollar > 0 ? 'Check partner' : 'No PRP selected'));
+  set('r-ffCard',     !s1.card ? '0'
+                    : (s1.ffCard === 0 && s1.card.partners.length === 0 && !s1.card.directProgram) ? 'No partners'
+                    : (s1.ffCard === 0 && s1.cardPts > 0) ? 'Not a partner'
+                    : fmtPts(s1.ffCard));
+  set('r-totalFF',    fmtPts(s1.totalFF));
+  set('r-flightValue', fmtAUD(s1.totalFF * 0.035));
+  const netValue = (s1.totalFF * 0.035) - s1.feePost;
+  const netEl = document.getElementById('r-netValue');
+  netEl.textContent = fmtAUD2(netValue);
+  netEl.className = 'rval ' + (netValue >= 0 ? 'saving' : 'cost');
+
+  renderCardPanel(s1.card);
+  renderCapAlert(s1);
+
+  set('fs-prpReq',   fmtPts(s2.prpRequired));
+  set('fs-spend',    s2.spendToEarn != null ? fmtAUD(s2.spendToEarn) : 'Select a PRP option above');
+  set('fs-rate',     fmtPct(s1.totalFeeRate));
+  set('fs-feesPre',  s2.feesPre  != null ? fmtAUD2(s2.feesPre)  : 'N/A');
+  set('fs-feesPost', s2.feesPost != null ? fmtAUD2(s2.feesPost) : 'N/A');
+  set('fs-taxes',    fmtAUD2(s2.taxes));
+  set('fs-totalPre', s2.totalPre  != null ? fmtAUD2(s2.totalPre)  : 'N/A');
+  set('fs-totalPost',s2.totalPost != null ? fmtAUD2(s2.totalPost) : 'N/A');
+  set('fs-savePre',  s2.savePre  != null ? fmtAUD2(s2.savePre)  : 'N/A');
+  set('fs-savePost', s2.savePost != null ? fmtAUD2(s2.savePost) : 'N/A');
+  set('fs-pctPre',   s2.pctPre  != null ? s2.pctPre.toFixed(1)  + '%' : 'N/A');
+  set('fs-pctPost',  s2.pctPost != null ? s2.pctPost.toFixed(1) + '%' : 'N/A');
+  setH('fs-cpp',     cppBadge(s2.cpp));
+
+  updateBestFlight(s1);
+  renderFlights();
+}
+
+// ════════════════════════════════════════
+// LIVE FLIGHTS
+// ════════════════════════════════════════
+function renderFlights() {
+  const fromF        = document.getElementById('lf-from').value;
+  const toF          = document.getElementById('lf-to').value;
+  const plan         = document.getElementById('lf-plan').value;
+  const cardName     = document.getElementById('lf-card').value;
+  const prpOpt       = document.getElementById('lf-prp').value;
+  const ratingFilter = document.getElementById('lf-rating').value;
+
+  const card = cardName === 'Bank Account' ? null : (CARDS.find(c => c.name === cardName) || null);
+  let planFeeRate = 0;
+  if (card) {
+    if (card.type === 'AMEX')       planFeeRate = PLAN_RATES[plan] || 0;
+    else if (card.type === 'Visa')  planFeeRate = PLAN_RATES_VISA[plan] || 0.012;
+    else if (card.type === 'Mastercard') planFeeRate = PLAN_RATES_MC[plan] || 0.010;
+  }
+  const prpBoosterRate = prpOpt === '2 PRP per $ (+1.8% fee)' ? 0.018
+                       : prpOpt === '1 PRP per $ (+1% fee)'   ? 0.01 : 0;
+  const prpPerDollar   = prpOpt === '2 PRP per $ (+1.8% fee)' ? 2
+                       : prpOpt === '1 PRP per $ (+1% fee)'   ? 1 : 0;
+
+  const tbody = document.getElementById('flights-tbody');
+  tbody.innerHTML = '';
+
+  let matchCount = 0, matchSavings = [], bestCPP = null;
+
+  FLIGHTS.forEach(f => {
+    const isMatch = (!fromF || f.from === fromF) && (!toF || f.to === toF);
+    const calc    = calcFlightRow(f, planFeeRate, prpBoosterRate, prpPerDollar, card);
+    const rowCls  = cppRowClass(calc.cpp);
+
+    if (ratingFilter && rowCls !== ratingFilter) return;
+
+    if (isMatch) {
+      matchCount++;
+      if (calc.saving != null) matchSavings.push(calc.saving);
+      if (calc.cpp > 0 && (bestCPP == null || calc.cpp > bestCPP)) bestCPP = calc.cpp;
+    }
+
+    const tr = document.createElement('tr');
+    if (rowCls) tr.classList.add(rowCls);
+    if (isMatch) tr.classList.add('row-match');
+
+    const svHtml = calc.saving != null
+      ? `<span class="sv-pos">${fmtAUD2(calc.saving)}</span>`
+      : `<span class="sv-dash">—</span>`;
+
+    tr.innerHTML = `
+      <td>${f.id}</td>
+      <td>${f.from}</td>
+      <td>${f.to}</td>
+      <td>${f.airline}</td>
+      <td>${f.cls}</td>
+      <td>${f.dep}</td>
+      <td class="num">${fmtPts(f.ff)}</td>
+      <td class="num">${f.taxes > 0 ? fmtAUD2(f.taxes) : '—'}</td>
+      <td class="num">${fmtAUD(f.cash)}</td>
+      <td class="num">${fmtPts(calc.prpRequired)}</td>
+      <td class="num">${calc.spend != null ? fmtAUD(calc.spend) : '—'}</td>
+      <td class="num">${calc.fees != null ? fmtAUD2(calc.fees) : '—'}</td>
+      <td class="num">${calc.totalCost != null ? fmtAUD2(calc.totalCost) : '—'}</td>
+      <td class="num">${calc.costAfterTax != null ? fmtAUD2(calc.costAfterTax) : '—'}</td>
+      <td class="num">${svHtml}</td>
+      <td class="num">${cppBadge(calc.cpp)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  set('lf-count', matchCount.toString());
+  if (matchSavings.length > 0) {
+    set('lf-avgSave', fmtAUD2(matchSavings.reduce((a,b)=>a+b,0) / matchSavings.length));
+  } else {
+    set('lf-avgSave', '—');
+  }
+  setH('lf-bestCPP', bestCPP != null ? cppBadge(bestCPP) : '—');
+}
+
+// ════════════════════════════════════════
+// DESTINATION DROPDOWN
+// ════════════════════════════════════════
+function rebuildFromDropdown() {
+  const fromSel = document.getElementById('lf-from');
+  const prev = fromSel.value;
+  fromSel.innerHTML = '<option value="">All Cities</option>';
+  const origins = [...new Set(FLIGHTS.map(f => f.from))].sort();
+  origins.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    if (o === prev) opt.selected = true;
+    fromSel.appendChild(opt);
+  });
+  fromChanged();
+}
+
+function fromChanged() {
+  const from  = document.getElementById('lf-from').value;
+  const toSel = document.getElementById('lf-to');
+  toSel.innerHTML = '<option value="">All Destinations</option>';
+  const destMap = getDestByOrigin();
+  const dests   = from && destMap[from] ? destMap[from] : [...new Set(FLIGHTS.map(f => f.to))].sort();
+  dests.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    toSel.appendChild(o);
+  });
+  renderFlights();
+}
+
+// ════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ════════════════════════════════════════
+// EXCEL FETCH FROM GITHUB
+// ════════════════════════════════════════
+async function loadFlightsFromGitHub() {
+  const url = 'https://raw.githubusercontent.com/payrick2310/internalcalcpaycomau/main/flights.xlsx';
+  const statusEl = document.getElementById('ds-status');
+  try {
+    statusEl.innerHTML = '<span class="ds-warn">Fetching flight data from repository…</span>';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Fetch failed — HTTP ' + response.status);
+    statusEl.innerHTML = '<span class="ds-warn">Parsing Excel file…</span>';
+    const arrayBuffer = await response.arrayBuffer();
+    if (typeof XLSX === 'undefined') throw new Error('SheetJS library did not load — check your internet connection');
+    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) throw new Error('No sheets found in workbook');
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+    if (!rows || rows.length === 0) throw new Error('Sheet appears empty — check column headers match the expected format');
+    FLIGHTS = rows.map((row, i) => ({
+      id:      i + 1,
+      from:    String(row['From']             || '').trim(),
+      to:      String(row['To']               || '').trim(),
+      airline: String(row['Airline']          || '').trim(),
+      cls:     String(row['Class']            || '').trim(),
+      dep:     String(row['Departure']        || '').trim(),
+      ff:      Number(row['FF Points'])        || 0,
+      taxes:   Number(row['Taxes (AUD)'])      || 0,
+      cash:    Number(row['Cash Price (AUD)']) || 0,
+    }));
+    rebuildFromDropdown();
+    calculate();
+    statusEl.innerHTML = `<span class="ds-ok">&#10003; ${FLIGHTS.length} flights loaded from repository.</span>`;
+  } catch (err) {
+    statusEl.innerHTML = `<span class="ds-err">&#9888; ${err.message}</span>`;
+    console.error('loadFlightsFromGitHub:', err);
+  }
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+buildPaymentDropdown();
+buildFlightsCardDropdown();
+rebuildPartnerDropdown(null);
+rebuildFromDropdown();
+renderCardsTable();
+calculate();
+loadFlightsFromGitHub();
+</script>
+</body>
+</html>
